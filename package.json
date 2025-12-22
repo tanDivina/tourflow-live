@@ -1,0 +1,23 @@
+{
+  "name": "tourflow-live",
+  "version": "1.0.0",
+  "main": "ai_processor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-fileupload": "^1.5.2",
+    "kafkajs": "^2.2.4",
+    "multer": "^2.0.2",
+    "redis": "^5.10.0",
+    "sharp": "^0.34.5"
+  }
+}
