@@ -3,6 +3,37 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+// --- TYPEWRITER EFFECT COMPONENT ---
+const Typewriter = ({ phrases }) => {
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [reverse, setReverse] = useState(false);
+
+  useEffect(() => {
+    if (subIndex === phrases[index].length + 1 && !reverse) {
+      setTimeout(() => setReverse(true), 2000);
+      return;
+    }
+    if (subIndex === 0 && reverse) {
+      setReverse(false);
+      setIndex((prev) => (prev + 1) % phrases.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + (reverse ? -1 : 1));
+    }, reverse ? 75 : 150);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, reverse, phrases]);
+
+  return (
+    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 border-r-2 border-purple-400 pr-1 animate-pulse">
+      {phrases[index].substring(0, subIndex)}
+    </span>
+  );
+};
+
 // --- CUSTOM GLOBE CURSOR ---
 const GlobeCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -113,8 +144,9 @@ export default function LandingPage() {
               Now powered by Gemini 3 Flash
             </div>
             
-            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1">
-              Turn your tour into a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">live story.</span>
+            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1]">
+              Turn your tour into a <br />
+              <Typewriter phrases={['live story.', 'social feed.', 'vibrant memory.', 'digital guide.']} />
             </h1>
             
             <p className="text-xl text-gray-500 leading-relaxed max-w-lg">
