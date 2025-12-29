@@ -1,6 +1,33 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
+// --- CUSTOM GLOBE CURSOR ---
+const GlobeCursor = () => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const updateCursor = (e) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', updateCursor);
+    return () => window.removeEventListener('mousemove', updateCursor);
+  }, []);
+
+  return (
+    <div 
+      className="fixed pointer-events-none z-[9999] text-3xl transition-transform duration-75 ease-out select-none"
+      style={{ 
+        left: `${position.x}px`, 
+        top: `${position.y}px`,
+        transform: 'translate(-50%, -50%)',
+      }}
+    >
+      🌍
+    </div>
+  );
+};
 
 // --- STRIPE-LIKE WAVE BACKGROUND COMPONENT ---
 const WaveBackground = () => (
@@ -50,7 +77,8 @@ const WaveBackground = () => (
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 relative">
+    <div className="min-h-screen text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 relative cursor-none">
+      <GlobeCursor />
       <WaveBackground />
       
       {/*NAVIGATION */}
