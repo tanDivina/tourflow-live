@@ -28,7 +28,7 @@ const Typewriter = ({ phrases }) => {
   }, [subIndex, index, reverse, phrases]);
 
   return (
-    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 border-r-2 border-purple-400 pr-1 animate-pulse">
+    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-teal-400 to-emerald-500 border-r-2 border-teal-400 pr-1 animate-pulse">
       {phrases[index].substring(0, subIndex)}
     </span>
   );
