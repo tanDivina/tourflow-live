@@ -61,7 +61,7 @@ const GlobeCursor = () => {
 };
 
 // --- SCROLL REVEAL COMPONENT ---
-const ScrollReveal = ({ children, delay = 0 }) => {
+const ScrollReveal = ({ children, delay = 0, direction = 'bottom' }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
 
@@ -79,12 +79,19 @@ const ScrollReveal = ({ children, delay = 0 }) => {
     return () => observer.disconnect();
   }, []);
 
+  const getTransform = () => {
+    if (!isVisible) {
+      if (direction === 'left') return '-translate-x-20 opacity-0';
+      if (direction === 'right') return 'translate-x-20 opacity-0';
+      return 'translate-y-10 opacity-0';
+    }
+    return 'translate-x-0 translate-y-0 opacity-100';
+  };
+
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 transform ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-      }`}
+      className={`transition-all duration-1000 transform ${getTransform()}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -390,7 +397,7 @@ export default function LandingPage() {
               }
             ].map((item, i) => (
               <div key={i} className={`flex flex-col ${i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-16`}>
-                <ScrollReveal delay={100}>
+                <ScrollReveal delay={100} direction={i % 2 === 0 ? 'left' : 'right'}>
                   <div className="flex-1 space-y-6">
                     <div className="text-6xl font-black text-blue-500/10 mb-2">{item.step}</div>
                     <h3 className="text-3xl font-bold text-gray-800">
@@ -402,7 +409,7 @@ export default function LandingPage() {
                   </div>
                 </ScrollReveal>
                 
-                <ScrollReveal delay={300}>
+                <ScrollReveal delay={300} direction={i % 2 === 0 ? 'right' : 'left'}>
                   <div className="flex-1">
                     <div className="relative aspect-video bg-white/30 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center text-8xl group hover:scale-105 transition-transform duration-500 ring-1 ring-white/60 overflow-hidden">
                        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-emerald-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
