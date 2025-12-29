@@ -283,6 +283,70 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* HOW IT WORKS SECTION */}
+      <section id="how-it-works" className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="text-center max-w-2xl mx-auto mb-20">
+              <h2 className="text-4xl lg:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 inline-block">
+                Simple as 1-2-3
+              </h2>
+              <p className="text-lg text-gray-600 font-medium">From the tour field to the global feed in seconds.</p>
+            </div>
+          </ScrollReveal>
+
+          <div className="space-y-32">
+            {[
+              {
+                step: '01',
+                title: 'Start Recording',
+                desc: 'The guide opens the TourFlow app and starts talking. Our AI begins analyzing the audio stream immediately, identifying landmarks and stories.',
+                icon: '🎙️',
+                image: '🎤'
+              },
+              {
+                step: '02',
+                title: 'Snap & Share',
+                desc: 'Guests and guides upload photos of what they see. Our AI automatically matches the most relevant image to the current audio context.',
+                icon: '📸',
+                image: '🖼️'
+              },
+              {
+                step: '03',
+                title: 'Live Story Generated',
+                desc: 'Gemini 3 Flash creates a social-media style update with a witty caption and the best photo. Followers see it instantly on the live feed.',
+                icon: '✨',
+                image: '📱'
+              }
+            ].map((item, i) => (
+              <div key={i} className={`flex flex-col ${i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-16`}>
+                <ScrollReveal delay={100}>
+                  <div className="flex-1 space-y-6">
+                    <div className="text-6xl font-black text-blue-500/10 mb-2">{item.step}</div>
+                    <h3 className="text-3xl font-bold text-gray-800 flex items-center gap-4">
+                      <span className="p-3 bg-white/50 rounded-2xl shadow-sm ring-1 ring-white/60">{item.icon}</span>
+                      {item.title}
+                    </h3>
+                    <p className="text-xl text-gray-600 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </ScrollReveal>
+                
+                <ScrollReveal delay={300}>
+                  <div className="flex-1">
+                    <div className="relative aspect-video bg-white/30 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl flex items-center justify-center text-8xl group hover:scale-105 transition-transform duration-500 ring-1 ring-white/60 overflow-hidden">
+                       <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-emerald-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                       {item.image}
+                    </div>
+                  </div>
+                </ScrollReveal>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="bg-white border-t border-gray-100 py-12">
         <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
