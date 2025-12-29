@@ -8,7 +8,7 @@ require('dotenv').config();
 
 // Configuration
 const BATCH_WINDOW_MS = 60000; // 60 seconds processing window
-const MODEL_NAME = 'gemini-2.0-flash-exp'; // Using latest flash preview (adjust to 'gemini-3-flash' if available)
+const MODEL_NAME = 'gemini-3.0-flash'; // Using latest Gemini 3.0 Flash
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes of inactivity
 
 // Initialize Clients
