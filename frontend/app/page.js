@@ -393,8 +393,7 @@ export default function LandingPage() {
                 <ScrollReveal delay={100}>
                   <div className="flex-1 space-y-6">
                     <div className="text-6xl font-black text-blue-500/10 mb-2">{item.step}</div>
-                    <h3 className="text-3xl font-bold text-gray-800 flex items-center gap-4">
-                      <span className="p-3 bg-white/50 rounded-2xl shadow-sm ring-1 ring-white/60">{item.icon}</span>
+                    <h3 className="text-3xl font-bold text-gray-800">
                       {item.title}
                     </h3>
                     <p className="text-xl text-gray-600 leading-relaxed">
