@@ -251,7 +251,7 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { 
                 icon: '🎙️', 
@@ -267,6 +267,11 @@ export default function LandingPage() {
                 icon: '✍️', 
                 title: 'Instant Captions', 
                 desc: 'Generates witty, engaging captions formatted perfectly for social sharing.' 
+              },
+              { 
+                icon: '🚀', 
+                title: 'Event Streaming', 
+                desc: 'Powered by Confluent Cloud for ultra-low latency, real-time data processing.' 
               }
             ].map((feature, i) => (
               <ScrollReveal key={i} delay={i * 200}>
@@ -344,6 +349,46 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CONFLUENT SECTION */}
+      <section className="py-24 relative">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <ScrollReveal>
+            <div className="inline-block p-4 bg-white/30 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl mb-12 ring-1 ring-white/60">
+              <div className="flex items-center gap-4 px-4">
+                 <span className="text-2xl">🔗</span>
+                 <div className="text-left leading-tight">
+                   <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">Connected via</div>
+                   <div className="text-xl font-black text-gray-800 tracking-tight">CONFLUENT CLOUD</div>
+                 </div>
+              </div>
+            </div>
+
+            <div className="max-w-3xl mx-auto space-y-8">
+              <h2 className="text-4xl font-bold text-gray-800">The Real-Time Backbone</h2>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                TourFlow is built on top of **Confluent Cloud (Apache Kafka)**. We treat every audio clip and photo as a 
+                <span className="text-teal-600 font-bold"> real-time event</span>.
+              </p>
+              
+              <div className="grid md:grid-cols-3 gap-6 pt-8">
+                <div className="p-6 bg-white/20 rounded-2xl border border-white/30 backdrop-blur-sm">
+                   <div className="font-bold text-gray-800 mb-2">Ingestion</div>
+                   <div className="text-sm text-gray-500">Raw audio and photos are streamed into Kafka topics.</div>
+                </div>
+                <div className="p-6 bg-white/20 rounded-2xl border border-white/30 backdrop-blur-sm">
+                   <div className="font-bold text-gray-800 mb-2">Processing</div>
+                   <div className="text-sm text-gray-500">AI workers consume streams to generate instant captions.</div>
+                </div>
+                <div className="p-6 bg-white/20 rounded-2xl border border-white/30 backdrop-blur-sm">
+                   <div className="font-bold text-gray-800 mb-2">Delivery</div>
+                   <div className="text-sm text-gray-500">Processed feed events are pushed to fans globally.</div>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
