@@ -143,24 +143,24 @@ export default function LandingPage() {
             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-50 mix-blend-multiply animate-blob animation-delay-2000"></div>
             
             {/* App Mockup Card */}
-            <div className="relative bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
-              <div className="bg-gray-50 border-b border-gray-100 p-4 flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+            <div className="relative bg-white/40 backdrop-blur-xl border border-white/50 rounded-3xl shadow-2xl overflow-hidden rotate-[-2deg] hover:rotate-0 transition-transform duration-500 ring-1 ring-white/60">
+              <div className="bg-white/50 border-b border-white/20 p-4 flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-400 shadow-sm"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400 shadow-sm"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400 shadow-sm"></div>
               </div>
               <div className="p-6 space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-xl">🎤</div>
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-xl backdrop-blur-sm">🎤</div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-100 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-900/10 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-900/10 rounded w-1/2"></div>
                   </div>
                 </div>
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
+                <div className="aspect-video bg-white/50 rounded-xl flex items-center justify-center text-gray-400 border border-white/40 shadow-inner">
                   AI Generated Live Feed Preview
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg text-blue-800 text-sm">
+                <div className="p-4 bg-blue-600/10 rounded-xl text-blue-900 text-sm border border-blue-100/20">
                   ✨ "Welcome to the Colosseum! This amphitheater could hold up to 80,000 spectators."
                 </div>
               </div>
@@ -172,11 +172,11 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES SECTION */}
-      <section id="features" className="py-24 bg-gray-50">
+      <section id="features" className="py-24 relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl font-bold mb-4">Why use TourFlow?</h2>
-            <p className="text-gray-500">We handle the content creation so you can focus on the experience.</p>
+            <p className="text-gray-600">We handle the content creation so you can focus on the experience.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -197,10 +197,10 @@ export default function LandingPage() {
                 desc: 'Generates witty, engaging captions formatted perfectly for social sharing.' 
               }
             ].map((feature, i) => (
-              <div key={i} className="bg-white p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-shadow">
+              <div key={i} className="bg-white/30 backdrop-blur-md p-8 rounded-2xl border border-white/40 shadow-lg hover:bg-white/40 transition-all hover:-translate-y-1">
                 <div className="text-4xl mb-6">{feature.icon}</div>
                 <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-500 leading-relaxed">{feature.desc}</p>
+                <p className="text-gray-700 leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
