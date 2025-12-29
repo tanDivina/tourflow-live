@@ -288,6 +288,71 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FOR GUIDES SECTION */}
+      <section className="py-24 relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="bg-gradient-to-br from-gray-900 to-blue-900 rounded-[3rem] p-12 lg:p-24 text-white relative overflow-hidden shadow-2xl">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            
+            <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+              <ScrollReveal>
+                <div className="space-y-8">
+                  <div className="inline-block px-4 py-1 bg-blue-500/20 rounded-full text-blue-300 text-sm font-bold tracking-wide uppercase border border-blue-400/30">
+                    For Professionals
+                  </div>
+                  <h2 className="text-4xl lg:text-5xl font-bold leading-tight">
+                    Focus on the moment. <br/>
+                    <span className="text-blue-400">Let AI handle the memory.</span>
+                  </h2>
+                  <p className="text-xl text-gray-300 leading-relaxed">
+                    You can't narrate a masterpiece and post to Instagram at the same time. TourFlow acts as your <span className="text-white font-semibold">silent digital co-pilot</span>.
+                  </p>
+                  
+                  <div className="space-y-6 pt-4">
+                    {[
+                      { title: "Zero Distraction", desc: "Keep your phone in your pocket. Just speak naturally." },
+                      { title: "Instant Assets", desc: "Walk away with a ready-made social feed to share instantly." },
+                      { title: "Higher Engagement", desc: "Guests stay immersed in your story, not their screens." }
+                    ].map((item, i) => (
+                      <div key={i} className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mt-1 flex-shrink-0">✓</div>
+                        <div>
+                          <h4 className="font-bold text-lg">{item.title}</h4>
+                          <p className="text-gray-400 text-sm">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal delay={200}>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent z-20"></div>
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 rotate-3 hover:rotate-0 transition-all duration-500 cursor-none">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-yellow-400"></div>
+                      <div>
+                        <div className="text-sm font-bold">Your Tour Brand</div>
+                        <div className="text-xs text-gray-400">Just now • AI Generated</div>
+                      </div>
+                    </div>
+                    <div className="h-48 bg-gray-800 rounded-lg mb-4 flex items-center justify-center text-gray-500">
+                      [Best Photo Selected]
+                    </div>
+                    <div className="space-y-2">
+                       <div className="h-2 bg-gray-700 rounded w-3/4"></div>
+                       <div className="h-2 bg-gray-700 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS SECTION */}
       <section id="how-it-works" className="py-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
@@ -369,8 +434,12 @@ export default function LandingPage() {
             <div className="max-w-3xl mx-auto space-y-8">
               <h2 className="text-4xl font-bold text-gray-800">The Real-Time Backbone</h2>
               <p className="text-xl text-gray-600 leading-relaxed">
-                TourFlow is built on top of **Confluent Cloud (Apache Kafka)**. We treat every audio clip and photo as a 
+                TourFlow is built on top of **Confluent Cloud (Apache Kafka)**. Unlike traditional apps that process data in slow batches, we treat every audio clip and photo as a 
                 <span className="text-teal-600 font-bold"> real-time event</span>.
+              </p>
+              <p className="text-lg text-gray-500">
+                This event-driven architecture allows us to process AI insights in milliseconds, ensuring your followers see the moment 
+                <span className="italic"> as it happens</span>—not minutes later. It scales effortlessly from one tour to thousands.
               </p>
               
               <div className="grid md:grid-cols-3 gap-6 pt-8">
