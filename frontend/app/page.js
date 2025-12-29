@@ -2,9 +2,56 @@
 
 import Link from 'next/link';
 
+// --- STRIPE-LIKE WAVE BACKGROUND COMPONENT ---
+const WaveBackground = () => (
+  <div className="fixed inset-0 -z-10 overflow-hidden bg-gray-50">
+    <style jsx>{`
+      @keyframes gradient {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(0, -20px) rotate(2deg); }
+        100% { transform: translate(0, 0) rotate(0deg); }
+      }
+      @keyframes wave {
+        0% { transform: translateX(-50%) skewY(-12deg); }
+        100% { transform: translateX(50%) skewY(-12deg); }
+      }
+      .stripe-bg {
+        position: absolute;
+        width: 200%;
+        height: 100%;
+        background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+        opacity: 0.6;
+        animation: wave 25s linear infinite alternate;
+        filter: blur(60px);
+        top: -50%;
+        left: -50%;
+      }
+      .stripe-bg:nth-child(2) {
+        background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        animation-duration: 35s;
+        top: -40%;
+        left: -30%;
+        opacity: 0.4;
+      }
+      .stripe-bg:nth-child(3) {
+        background: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%);
+        animation-duration: 45s;
+        bottom: -20%;
+        left: -10%;
+        opacity: 0.3;
+      }
+    `}</style>
+    <div className="stripe-bg"></div>
+    <div className="stripe-bg"></div>
+    <div className="stripe-bg"></div>
+    <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]"></div>
+  </div>
+);
+
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 relative">
+      <WaveBackground />
       
       {/*NAVIGATION */}
       <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -35,7 +82,7 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
               </span>
-              Now powered by Gemini 3.0 Flash
+              Now powered by Gemini 3 Flash
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1">
