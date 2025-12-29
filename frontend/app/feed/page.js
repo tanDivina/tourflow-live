@@ -21,7 +21,7 @@ export default function Feed() {
     const connectSSE = () => {
       console.log('Connecting to SSE...');
       setConnectionStatus('connecting');
-      eventSource = new EventSource('http://localhost:3001/events');
+      eventSource = new EventSource('http://192.168.1.40:3001/events');
 
       eventSource.onopen = () => {
         setConnectionStatus('connected');
@@ -67,7 +67,7 @@ export default function Feed() {
     formData.append('media', file);
 
     try {
-      const res = await fetch('http://localhost:3001/upload', {
+      const res = await fetch('http://192.168.1.40:3001/upload', {
         method: 'POST',
         body: formData,
       });
