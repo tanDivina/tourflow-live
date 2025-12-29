@@ -244,8 +244,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <ScrollReveal>
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="text-3xl font-bold mb-4">Why use TourFlow?</h2>
-              <p className="text-gray-600">We handle the content creation so you can focus on the experience.</p>
+              <h2 className="text-4xl lg:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 inline-block drop-shadow-sm">
+                Why use TourFlow?
+              </h2>
+              <p className="text-lg text-gray-600 font-medium">We handle the content creation so you can focus on the experience.</p>
             </div>
           </ScrollReveal>
 
@@ -268,10 +270,12 @@ export default function LandingPage() {
               }
             ].map((feature, i) => (
               <ScrollReveal key={i} delay={i * 200}>
-                <div className="bg-white/30 backdrop-blur-md p-8 rounded-2xl border border-white/40 shadow-lg hover:bg-white/40 transition-all hover:-translate-y-1 h-full">
-                  <div className="text-4xl mb-6">{feature.icon}</div>
-                  <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                  <p className="text-gray-700 leading-relaxed">{feature.desc}</p>
+                <div className="group bg-white/30 backdrop-blur-md p-8 rounded-3xl border border-white/50 shadow-lg hover:shadow-teal-500/20 hover:border-teal-400/50 hover:bg-white/60 transition-all duration-300 hover:-translate-y-2 h-full">
+                  <div className="mb-6 inline-block p-4 rounded-2xl bg-gradient-to-br from-white/80 to-white/20 shadow-sm ring-1 ring-white/60 group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-4xl">{feature.icon}</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-teal-700 transition-colors">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors">{feature.desc}</p>
                 </div>
               </ScrollReveal>
             ))}
