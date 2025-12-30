@@ -20,17 +20,21 @@ const createTopics = async () => {
     await admin.connect();
     console.log('Connected!');
 
-    const topics = ['tour-audio-chunks', 'tour-photos-raw', 'tour-live-feed'];
-    console.log(`Creating topics: ${topics.join(', ')}...`);
-
-    const topicConfigs = topics.map(t => ({
-      topic: t,
-      numPartitions: 1,
-      replicationFactor: 3 // Standard for Confluent Cloud
-    }));
+    const topics = [
+      { topic: 'tour-audio-chunks', numPartitions: 1, replicationFactor: 3 },
+      { topic: 'tour-photos-raw', numPartitions: 1, replicationFactor: 3 },
+      { topic: 'tour-live-feed', numPartitions: 1, replicationFactor: 3 },
+      { 
+        topic: 'tour-blueprints', 
+        numPartitions: 1, 
+        replicationFactor: 3,
+        configEntries: [{ name: 'cleanup.policy', value: 'compact' }]
+      }
+    ];
+    console.log(`Creating topics: ${topics.map(t => t.topic).join(', ')}...`);
 
     await admin.createTopics({
-      topics: topicConfigs,
+      topics: topics,
       waitForLeaders: true,
     });
 

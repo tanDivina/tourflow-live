@@ -32,7 +32,12 @@ sleep 10
 echo "Creating Topics..."
 confluent kafka topic create tour-audio-chunks --cluster $CLUSTER_ID
 confluent kafka topic create tour-photos-raw --cluster $CLUSTER_ID
-confluent kafka topic create tour-live-feed --cluster $CLUSTER_ID
+confluent kafka topic create tour-blueprints --cluster $CLUSTER_ID --config cleanup.policy=compact
+
+# Live Feed with Tiered Storage (Infinite Retention)
+confluent kafka topic create tour-live-feed --cluster $CLUSTER_ID \
+  --config retention.ms=-1 \
+  --config confluent.tier.storage.enable=true
 
 # 4. Create API Keys
 echo "Creating API Key for the application..."
