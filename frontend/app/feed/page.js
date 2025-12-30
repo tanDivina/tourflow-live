@@ -21,7 +21,7 @@ export default function Feed() {
     const connectSSE = () => {
       console.log('Connecting to SSE...');
       setConnectionStatus('connecting');
-      eventSource = new EventSource('https://5d3628f81e9a.ngrok-free.app/events');
+      eventSource = new EventSource('https://tourflow-backend-81532538916.us-central1.run.app/events');
 
       eventSource.onopen = () => {
         setConnectionStatus('connected');
@@ -67,7 +67,7 @@ export default function Feed() {
     formData.append('media', file);
 
     try {
-      const res = await fetch('https://5d3628f81e9a.ngrok-free.app/upload', {
+      const res = await fetch('https://tourflow-backend-81532538916.us-central1.run.app/upload', {
         method: 'POST',
         body: formData,
       });

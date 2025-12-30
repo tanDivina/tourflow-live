@@ -3,13 +3,11 @@
 
 const { Kafka } = require('kafkajs');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { createClient } = require('redis');
 require('dotenv').config();
 
 // Configuration
 const BATCH_WINDOW_MS = 60000; // 60 seconds processing window
-const MODEL_NAME = 'gemini-3.0-flash'; // Using latest Gemini 3.0 Flash
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes of inactivity
+const MODEL_NAME = 'gemini-3-flash-preview'; // Using Gemini 3 Flash Preview
 
 // Initialize Clients
 const kafka = new Kafka({
@@ -26,28 +24,19 @@ const kafka = new Kafka({
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
-
-redisClient.on('error', err => console.error('Redis Client Error', err));
+// --- IN-MEMORY STORE (Replacing Redis for Demo Simplicity) ---
+const inMemoryStore = {}; 
+// Structure: { [sessionId]: { audio: [], photos: [], timer: null } }
 
 const consumer = kafka.consumer({ groupId: 'tourflow-ai-group' });
 const producer = kafka.producer();
 
-// In-memory timer references only (Data is in Redis)
-// Structure: { [sessionId]: Timer }
-const activeTimers = {};
-
 const connect = async () => {
-  await redisClient.connect();
-  console.log('Connected to Redis');
-
   await consumer.connect();
   await producer.connect();
-  console.log('AI Processor Connected to Kafka');
+  console.log('AI Processor Connected to Kafka (In-Memory Buffer)');
 
-  // Subscribe to raw topics (in a real prod scenario, we might consume a pre-windowed Flink topic)
+  // Subscribe to raw topics
   await consumer.subscribe({ topics: ['tour-audio-chunks', 'tour-photos-raw'], fromBeginning: false });
 
   await consumer.run({
@@ -61,57 +50,39 @@ const connect = async () => {
 };
 
 const handleIncomingData = async (sessionId, topic, data) => {
-  const audioKey = `session:${sessionId}:audio`;
-  const photosKey = `session:${sessionId}:photos`;
+  if (!inMemoryStore[sessionId]) {
+    inMemoryStore[sessionId] = { audio: [], photos: [], timer: null };
+  }
 
-  try {
-    // Push data to Redis and refresh expiry
-    if (topic === 'tour-audio-chunks') {
-      await redisClient.rPush(audioKey, JSON.stringify(data));
-      await redisClient.expire(audioKey, SESSION_TIMEOUT_MS / 1000);
-    } else if (topic === 'tour-photos-raw') {
-      await redisClient.rPush(photosKey, JSON.stringify(data));
-      await redisClient.expire(photosKey, SESSION_TIMEOUT_MS / 1000);
-    }
+  const session = inMemoryStore[sessionId];
 
-    // If no timer is running, start one to process the window
-    if (!activeTimers[sessionId]) {
-      activeTimers[sessionId] = setTimeout(() => processWindow(sessionId), BATCH_WINDOW_MS);
-      console.log(`Started processing window for session ${sessionId}`);
-    }
-  } catch (error) {
-    console.error(`Error handling incoming data for session ${sessionId}:`, error);
+  if (topic === 'tour-audio-chunks') {
+    session.audio.push(data);
+  } else if (topic === 'tour-photos-raw') {
+    session.photos.push(data);
+  }
+
+  // If no timer is running, start one to process the window
+  if (!session.timer) {
+    session.timer = setTimeout(() => processWindow(sessionId), BATCH_WINDOW_MS);
+    console.log(`Started processing window for session ${sessionId}`);
   }
 };
 
 const processWindow = async (sessionId) => {
-  // Clear timer reference immediately for next batch
-  if (activeTimers[sessionId]) {
-    // Ideally the timer just fired, so we just remove the ref. 
-    // If we manually called this, we'd clear it.
-    delete activeTimers[sessionId];
-  }
+  const session = inMemoryStore[sessionId];
+  if (!session) return;
 
-  const audioKey = `session:${sessionId}:audio`;
-  const photosKey = `session:${sessionId}:photos`;
+  // Clear timer reference
+  session.timer = null;
 
   try {
-    // Atomic retrieve and delete from Redis
-    const multi = redisClient.multi();
-    multi.lRange(audioKey, 0, -1);
-    multi.del(audioKey);
-    multi.lRange(photosKey, 0, -1);
-    multi.del(photosKey);
+    const currentAudio = [...session.audio];
+    const currentPhotos = [...session.photos];
 
-    const results = await multi.exec();
-    // results: [audioList, delCount, photosList, delCount]
-    
-    // In node-redis v4, results might be an array of responses.
-    const audioStrings = results[0];
-    const photoStrings = results[2];
-
-    const currentAudio = audioStrings ? audioStrings.map(s => JSON.parse(s)) : [];
-    const currentPhotos = photoStrings ? photoStrings.map(s => JSON.parse(s)) : [];
+    // Clear the memory for this session
+    session.audio = [];
+    session.photos = [];
 
     if (currentAudio.length === 0 && currentPhotos.length === 0) return;
 
