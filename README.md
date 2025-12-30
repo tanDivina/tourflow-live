@@ -1,6 +1,6 @@
 # 🌍 TourFlow Live
 
-**TourFlow Live** is a real-time, AI-powered interactive tour feed application. It allows guides and guests to upload audio and photos from a tour, which are then processed by **Google Gemini 2.0 Flash** to automatically generate an engaging, social-media style live feed for remote followers.
+**TourFlow Live** is a real-time, AI-powered interactive tour feed application. It allows guides and guests to upload audio and photos from a tour, which are then processed by **Google Gemini 3 Flash** to automatically generate an engaging, social-media style live feed for remote followers.
 
 ## 🏗 Architecture
 
