@@ -86,7 +86,7 @@ app.post('/upload', async (req, res) => {
     return res.status(400).send('No media file uploaded.');
   }
 
-  const { sessionId, type, source } = req.body;
+  const { sessionId, stopId, type, source } = req.body;
   const mediaFile = req.files.media;
   let mediaData = mediaFile.data;
   let mimeType = mediaFile.mimetype;
@@ -106,7 +106,7 @@ app.post('/upload', async (req, res) => {
       }
     }
 
-    await publishTourMedia(sessionId, type, mediaData, { source, mimeType });
+    await publishTourMedia(sessionId, stopId, type, mediaData, { source, mimeType });
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Upload error:', error);

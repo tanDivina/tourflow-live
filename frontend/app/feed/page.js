@@ -25,7 +25,8 @@ function FeedContent() {
     const connectSSE = () => {
       console.log('Connecting to SSE...');
       setConnectionStatus('connecting');
-      eventSource = new EventSource('https://tourflow-backend-81532538916.us-central1.run.app/events');
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tourflow-backend-81532538916.us-central1.run.app';
+      eventSource = new EventSource(`${backendUrl}/events`);
 
       eventSource.onopen = () => {
         setConnectionStatus('connected');
@@ -71,7 +72,8 @@ function FeedContent() {
     formData.append('media', file);
 
     try {
-      const res = await fetch('https://tourflow-backend-81532538916.us-central1.run.app/upload', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tourflow-backend-81532538916.us-central1.run.app';
+      const res = await fetch(`${backendUrl}/upload`, {
         method: 'POST',
         body: formData,
       });

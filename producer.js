@@ -26,20 +26,23 @@ const connectProducer = async () => {
 /**
  * Publishes media to the appropriate Kafka topic.
  * @param {string} sessionId - Unique ID for the tour session.
+ * @param {string} stopId - ID of the current stop from the Blueprint.
  * @param {string} type - 'audio' or 'photo'.
  * @param {Buffer} dataBuffer - The raw file buffer.
  * @param {Object} metadata - Additional info (e.g., user type, timestamp, location).
  */
-const publishTourMedia = async (sessionId, type, dataBuffer, metadata) => {
+const publishTourMedia = async (sessionId, stopId, type, dataBuffer, metadata) => {
   const topic = type === 'audio' ? 'tour-audio-chunks' : 'tour-photos-raw';
 
   try {
     const payload = {
       sessionId,
+      stopId,
+      source: metadata.source || 'guide', // Flattened for Flink
       type,
-      data: dataBuffer.toString('base64'), // Encoding binary for simple transport in JSON
+      data: dataBuffer.toString('base64'),
+      event_timestamp: new Date().toISOString(), // Renamed for Flink
       metadata,
-      timestamp: new Date().toISOString(),
     };
 
     await producer.send({
@@ -52,7 +55,7 @@ const publishTourMedia = async (sessionId, type, dataBuffer, metadata) => {
       ],
     });
 
-    console.log(`[${type}] Sent to ${topic} for session ${sessionId}`);
+    console.log(`[${type}] Sent to ${topic} for session ${sessionId} (Stop: ${stopId})`);
   } catch (error) {
     console.error(`Error publishing ${type}:`, error);
   }
@@ -62,10 +65,10 @@ const publishTourMedia = async (sessionId, type, dataBuffer, metadata) => {
 if (require.main === module) {
   (async () => {
     await connectProducer();
-    // Simulate an audio chunk
-    await publishTourMedia('session-123', 'audio', Buffer.from('mock-audio-data'), { duration: 30 });
-    // Simulate a photo
-    await publishTourMedia('session-123', 'photo', Buffer.from('mock-photo-data'), { source: 'guide' });
+    // Simulate an audio chunk at Stop 1
+    await publishTourMedia('session-123', 'stop-1', 'audio', Buffer.from('mock-audio-data'), { duration: 30 });
+    // Simulate a photo at Stop 2
+    await publishTourMedia('session-123', 'stop-2', 'photo', Buffer.from('mock-photo-data'), { source: 'guide' });
   })();
 }
 

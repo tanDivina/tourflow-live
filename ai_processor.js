@@ -36,31 +36,26 @@ const connect = async () => {
   await producer.connect();
   console.log('AI Processor Connected to Kafka (In-Memory Buffer)');
 
-  // Subscribe to raw topics
-  await consumer.subscribe({ topics: ['tour-audio-chunks', 'tour-photos-raw'], fromBeginning: false });
+  // Subscribe to enriched topic
+  await consumer.subscribe({ topics: ['enriched-media-stream'], fromBeginning: false });
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      const key = message.key.toString();
       const value = JSON.parse(message.value.toString());
+      const sessionId = value.session_id || value.sessionId;
       
-      await handleIncomingData(key, topic, value);
+      await handleIncomingData(sessionId, topic, value);
     },
   });
 };
 
 const handleIncomingData = async (sessionId, topic, data) => {
   if (!inMemoryStore[sessionId]) {
-    inMemoryStore[sessionId] = { audio: [], photos: [], timer: null };
+    inMemoryStore[sessionId] = { media: [], timer: null };
   }
 
   const session = inMemoryStore[sessionId];
-
-  if (topic === 'tour-audio-chunks') {
-    session.audio.push(data);
-  } else if (topic === 'tour-photos-raw') {
-    session.photos.push(data);
-  }
+  session.media.push(data);
 
   // If no timer is running, start one to process the window
   if (!session.timer) {
@@ -69,40 +64,80 @@ const handleIncomingData = async (sessionId, topic, data) => {
   }
 };
 
+/**
+ * Uses Gemini to moderate guest content.
+ * @param {string} base64Data - The image data.
+ * @returns {Promise<boolean>} - True if appropriate and high quality.
+ */
+const moderateContent = async (base64Data) => {
+  try {
+    const result = await model.generateContent([
+      { text: "Analyze this photo. Is it appropriate for a family-friendly tour gallery and of decent quality? Respond with only 'TRUE' or 'FALSE'." },
+      { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+    ]);
+    const text = result.response.text().toUpperCase();
+    return text.includes('TRUE');
+  } catch (err) {
+    console.error('Moderation error:', err);
+    return false; // Safety first
+  }
+};
+
 const processWindow = async (sessionId) => {
   const session = inMemoryStore[sessionId];
   if (!session) return;
 
-  // Clear timer reference
   session.timer = null;
 
   try {
-    const currentAudio = [...session.audio];
-    const currentPhotos = [...session.photos];
+    let currentMedia = [...session.media];
+    session.media = [];
 
-    // Clear the memory for this session
-    session.audio = [];
-    session.photos = [];
+    if (currentMedia.length === 0) return;
 
-    if (currentAudio.length === 0 && currentPhotos.length === 0) return;
+    // --- NEW: GUEST MODERATION ---
+    const moderatedMedia = [];
+    for (const item of currentMedia) {
+      if (item.source === 'guest') {
+        const isAppropriate = await moderateContent(item.media_url);
+        if (isAppropriate) moderatedMedia.push(item);
+        else console.log(`[MODERATION] Dropped inappropriate guest photo in session ${sessionId}`);
+      } else {
+        moderatedMedia.push(item);
+      }
+    }
+    currentMedia = moderatedMedia;
+    if (currentMedia.length === 0) return;
+    // ----------------------------
 
-    console.log(`Processing window for ${sessionId}: ${currentAudio.length} audio chunks, ${currentPhotos.length} photos`);
+    console.log(`Processing window for ${sessionId}: ${currentMedia.length} moderated items`);
+    
+    // ... rest of the Gemini processing logic
+
 
     // 1. Prepare parts for Gemini
     const parts = [];
+
+    // Get the latest blueprint info from the last message in this window
+    const lastItem = currentMedia[currentMedia.length - 1];
+    const stopName = lastItem.stop_name || 'Unknown Stop';
+    const contextHint = lastItem.context_hint || 'Keep it engaging';
 
     // Prompt
     parts.push({
       text: `You are the AI producer for "TourFlow", a live interactive tour feed.
       Your goal is to create engaging, real-time updates for an audience following along remotely.
       
-      Analyze the attached audio commentary (from the guide) and photos (from guide and guests).
+      SECTION HEADER: ${stopName}
+      CONTEXT HINT: ${contextHint}
       
-      1. **Listen:** Extract key facts, location names, and the story from the audio.
-      2. **Curate:** Review all photos. Select the *single best* image that matches the audio's moment. 
-         - Prioritize Guide photos unless a Guest photo is exceptional.
-         - Strictly ignore blurry, irrelevant, or inappropriate images.
-      3. **Write:** specific, engaging social-media style caption (Instagram/TikTok style).
+      You are no longer guessing the location. Use the provided stop name as the section header. 
+      Use the context hint to ground your storytelling. If the photos don't perfectly match the hint, 
+      trust the hint (the Blueprint is truth).
+      
+      1. **Analyze:** Extract key facts and the story from the audio chunks and photos.
+      2. **Curate:** Review all photos. Select the *single best* image that matches the story. 
+      3. **Write:** A specific, engaging social-media style caption (Instagram/TikTok style).
          - Use emojis 🌍✨📸.
          - Keep it under 280 characters.
          - Make it feel "live".
@@ -111,29 +146,27 @@ const processWindow = async (sessionId) => {
       { 
         "timestamp": "ISO_STRING", 
         "caption": "Your engaging caption here...", 
-        "highlight_image_index": 0, // Index in the provided photo list (integer)
+        "highlight_image_index": 0, // Index in the provided media list (integer)
         "guest_credit": "Name or null" 
       }`
     });
 
-    // Add Photos (Inline Data)
-    currentPhotos.forEach((photo) => {
-      parts.push({
-        inlineData: {
-          mimeType: photo.metadata?.mimeType || 'image/jpeg',
-          data: photo.data
-        }
-      });
-    });
-
-    // Add Audio
-    currentAudio.forEach(audio => {
+    // Add Media (Photos/Audio)
+    currentMedia.forEach((item) => {
+      // Note: In the Flink SQL join, we assumed item.media_url contains the data
+      // For this demo, we'll assume it's the base64 data if it doesn't look like a URL
+      const isPhoto = item.media_url && (item.media_url.length > 500 || !item.media_url.startsWith('http'));
+      
+      if (isPhoto) {
         parts.push({
-            inlineData: {
-                mimeType: audio.metadata?.mimeType || 'audio/mp3',
-                data: audio.data
-            }
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: item.media_url
+          }
         });
+      } else {
+        // Handle audio if needed, or other media
+      }
     });
 
     // 2. Call Gemini with retry logic
