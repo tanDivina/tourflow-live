@@ -49,9 +49,31 @@ const publishBlueprint = async (sessionId) => {
     console.log(`   📍 Defining Stop: ${stop.name}`);
     console.log(`      └─ Context: "${stop.context_hint}"`);
     
-    // In a real app, we'd publish this to 'tour-blueprints'
-    // For this demo, we simulate the "Admin" setting the state.
-    // The backend joins this data with the live stream.
+    // Publish to 'tour-blueprints' so the SQL Join works
+    const payload = {
+      // Flink SQL expects snake_case based on enrichment.sql
+      session_id: sessionId,
+      stop_id: stop.stopId,
+      stop_name: stop.name,
+      context_hint: stop.context_hint,
+      
+      // Keeping camelCase for potential other consumers
+      sessionId: sessionId,
+      stopId: stop.stopId,
+      timestamp: new Date().toISOString()
+    };
+
+    await producer.send({
+      topic: 'tour-blueprints',
+      messages: [
+        {
+          key: sessionId, 
+          value: JSON.stringify(payload),
+        },
+      ],
+    });
+
+    console.log(`      ✅ Published to Kafka: tour-blueprints`);
     
     // Simulate a slight delay as if the guide is planning the route
     await new Promise(r => setTimeout(r, 800));

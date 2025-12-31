@@ -36,15 +36,29 @@ const connect = async () => {
   await producer.connect();
   console.log('AI Processor Connected to Kafka (In-Memory Buffer)');
 
-  // Subscribe to enriched topic
-  await consumer.subscribe({ topics: ['enriched-media-stream'], fromBeginning: false });
+  // Subscribe to RAW topics instead of Enriched
+  await consumer.subscribe({ topics: ['tour-photos-raw', 'tour-audio-chunks'], fromBeginning: false });
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      const value = JSON.parse(message.value.toString());
-      const sessionId = value.session_id || value.sessionId;
+      const rawValue = JSON.parse(message.value.toString());
       
-      await handleIncomingData(sessionId, topic, value);
+      // Manual Enrichment Logic (Bypassing Flink)
+      const stopId = rawValue.stopId;
+      // Simple lookup (could be expanded to read tour-blueprints, but for now we default)
+      // In a real fix, we'd cache the blueprint map here.
+      const stopName = stopId === 'live-stream' ? 'Unplanned Stop' : (stopId || 'Unknown Stop');
+      const contextHint = stopId === 'live-stream' ? 'Analyze the visual content.' : 'Use available context.';
+
+      const enrichedData = {
+        ...rawValue,
+        stop_name: stopName,
+        context_hint: contextHint,
+        media_url: rawValue.data // In raw stream, 'data' is the base64 string
+      };
+      
+      const sessionId = rawValue.sessionId;
+      await handleIncomingData(sessionId, topic, enrichedData);
     },
   });
 };
@@ -131,13 +145,13 @@ const processWindow = async (sessionId) => {
       SECTION HEADER: ${stopName}
       CONTEXT HINT: ${contextHint}
       
-      You are no longer guessing the location. Use the provided stop name as the section header. 
-      Use the context hint to ground your storytelling. If the photos don't perfectly match the hint, 
-      trust the hint (the Blueprint is truth).
-      
+      INSTRUCTIONS:
       1. **Analyze:** Extract key facts and the story from the audio chunks and photos.
-      2. **Curate:** Review all photos. Select the *single best* image that matches the story. 
-      3. **Write:** A specific, engaging social-media style caption (Instagram/TikTok style).
+      2. **Context:** 
+         - If SECTION HEADER is "Unplanned Stop", IGNORE the context hint. Instead, analyze the photos/audio to figure out where they are and what is happening. BE CREATIVE and OBSERVANT.
+         - Otherwise, use the provided context hint to ground your storytelling. If photos conflict with the hint, trust the hint (the Blueprint is truth).
+      3. **Curate:** Review all photos. Select the *single best* image that matches the story. 
+      4. **Write:** A specific, engaging social-media style caption (Instagram/TikTok style).
          - Use emojis 🌍✨📸.
          - Keep it under 280 characters.
          - Make it feel "live".
@@ -152,11 +166,13 @@ const processWindow = async (sessionId) => {
     });
 
     // Add Media (Photos/Audio)
+    const currentPhotos = []; // Keep track for image selection later
+
     currentMedia.forEach((item) => {
-      // Note: In the Flink SQL join, we assumed item.media_url contains the data
-      // For this demo, we'll assume it's the base64 data if it doesn't look like a URL
-      const isPhoto = item.media_url && (item.media_url.length > 500 || !item.media_url.startsWith('http'));
-      
+      // Logic for raw stream data handling
+      const isPhoto = item.type === 'photo' || (item.media_url && !item.media_url.startsWith('http') && item.media_url.length > 500);
+      const isAudio = item.type === 'audio';
+
       if (isPhoto) {
         parts.push({
           inlineData: {
@@ -164,8 +180,15 @@ const processWindow = async (sessionId) => {
             data: item.media_url
           }
         });
-      } else {
-        // Handle audio if needed, or other media
+        currentPhotos.push({ data: item.media_url });
+      } else if (isAudio) {
+        parts.push({
+          inlineData: {
+            mimeType: 'audio/mp3',
+            data: item.media_url
+          }
+        });
+        console.log(`[AUDIO] Added audio chunk to Gemini context.`);
       }
     });
 

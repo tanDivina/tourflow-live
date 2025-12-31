@@ -50,11 +50,11 @@ INSERT INTO enriched_media_stream
 SELECT 
   stream.data as media_url,
   stream.event_timestamp as event_time,
-  blueprint.stop_name, 
-  blueprint.context_hint,
+  COALESCE(blueprint.stop_name, 'Unplanned Stop') as stop_name, 
+  COALESCE(blueprint.context_hint, 'Analyze the media content to determine the context.') as context_hint,
   stream.sessionId,
   stream.source
 FROM raw_media_stream AS stream
 -- Temporal Join on Event Time
-JOIN tour_blueprints FOR SYSTEM_TIME AS OF stream.event_timestamp AS blueprint 
+LEFT JOIN tour_blueprints FOR SYSTEM_TIME AS OF stream.event_timestamp AS blueprint 
 ON stream.sessionId = blueprint.session_id AND stream.stopId = blueprint.stop_id;

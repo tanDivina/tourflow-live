@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 function FeedContent() {
   const searchParams = useSearchParams();
   const initialSessionId = searchParams.get('session') || 'demo-session';
+  const activeStopId = searchParams.get('stopId') || 'live-stream';
 
   const [sessionId, setSessionId] = useState(initialSessionId);
   const [feed, setFeed] = useState([]);
@@ -16,10 +17,56 @@ function FeedContent() {
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null); // For Gallery Modal
+  const [isCameraOpen, setIsCameraOpen] = useState(false); // For In-App Camera
   
   // Audio Refs
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const shouldRecordRef = useRef(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // --- CAMERA LOGIC ---
+  const startCamera = async () => {
+    setIsCameraOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: { exact: "environment" } } // Try back camera first
+      }).catch(() => navigator.mediaDevices.getUserMedia({ video: true })); // Fallback
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err) {
+      console.error("Camera error:", err);
+      setUploadStatus('Camera denied');
+      setIsCameraOpen(false);
+    }
+  };
+
+  const takePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      const width = videoRef.current.videoWidth;
+      const height = videoRef.current.videoHeight;
+      canvasRef.current.width = width;
+      canvasRef.current.height = height;
+      context.drawImage(videoRef.current, 0, 0, width, height);
+      
+      canvasRef.current.toBlob((blob) => {
+        uploadMedia(blob, 'photo');
+        stopCamera();
+      }, 'image/jpeg', 0.8);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+    }
+    setIsCameraOpen(false);
+  };
 
   // --- FETCH HISTORY & SSE CONNECTION ---
   useEffect(() => {
@@ -77,7 +124,7 @@ function FeedContent() {
     setUploadStatus(`Uploading ${type}...`);
     const formData = new FormData();
     formData.append('sessionId', sessionId);
-    formData.append('stopId', 'live-stream'); // Default stopId for live feed
+    formData.append('stopId', activeStopId);
     formData.append('type', type);
     formData.append('source', source);
     formData.append('media', file);
@@ -95,9 +142,19 @@ function FeedContent() {
   };
 
   // --- AUDIO LOGIC ---
-  const startRecording = async () => {
+  const startRecording = async (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    shouldRecordRef.current = true;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // If user released button while waiting for permission
+      if (!shouldRecordRef.current) {
+         stream.getTracks().forEach(t => t.stop());
+         return;
+      }
+
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
       mediaRecorderRef.current.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
@@ -107,11 +164,17 @@ function FeedContent() {
       };
       mediaRecorderRef.current.start();
       setIsRecording(true);
-    } catch (err) { setUploadStatus('Mic denied'); }
+    } catch (err) { 
+      setUploadStatus('Mic denied'); 
+      shouldRecordRef.current = false;
+    }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+  const stopRecording = (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    shouldRecordRef.current = false;
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
@@ -177,7 +240,14 @@ function FeedContent() {
           <div className="sticky top-24 space-y-6">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center space-y-4">
               <h3 className="font-semibold text-gray-700">Audio Guide</h3>
-              <button onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}
+              <button 
+                onMouseDown={startRecording} 
+                onMouseUp={stopRecording} 
+                onMouseLeave={stopRecording}
+                onTouchStart={startRecording} 
+                onTouchEnd={stopRecording}
+                onTouchCancel={stopRecording}
+                onContextMenu={(e) => e.preventDefault()}
                 className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all ${isRecording ? 'bg-red-500 ring-8 ring-red-100 scale-110' : 'bg-gray-100 text-red-500'}`}>
                 {isRecording ? <span className="text-white">■</span> : <span className="text-3xl">🎤</span>}
               </button>
@@ -185,14 +255,35 @@ function FeedContent() {
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center space-y-4">
               <h3 className="font-semibold text-gray-700">Snap & Share</h3>
-              <label className="cursor-pointer block border-2 border-dashed rounded-lg p-8 hover:bg-gray-50">
-                <span className="text-3xl">📷</span>
-                <input type="file" accept="image/*" onChange={(e) => uploadMedia(e.target.files[0], 'photo')} className="hidden" />
-              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={startCamera} className="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-blue-200 bg-blue-50 rounded-lg p-4 hover:bg-blue-100 transition-colors">
+                  <span className="text-2xl mb-1">📸</span>
+                  <span className="text-xs font-bold text-blue-600">Camera</span>
+                </button>
+                <label className="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <span className="text-2xl mb-1">🖼️</span>
+                  <span className="text-xs font-bold text-gray-500">Gallery</span>
+                  <input type="file" accept="image/*" onChange={(e) => uploadMedia(e.target.files[0], 'photo')} className="hidden" />
+                </label>
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* CAMERA MODAL */}
+      {isCameraOpen && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+          <div className="flex-1 relative">
+            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted></video>
+            <canvas ref={canvasRef} className="hidden"></canvas>
+            <button onClick={stopCamera} className="absolute top-4 right-4 text-white text-4xl shadow-lg z-10">&times;</button>
+          </div>
+          <div className="h-32 bg-black flex items-center justify-center pb-8">
+            <button onClick={takePhoto} className="w-20 h-20 rounded-full bg-white border-4 border-gray-300 shadow-lg active:scale-95 transition-transform"></button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL */}
       {selectedPost && (
