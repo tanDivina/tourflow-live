@@ -87,13 +87,34 @@ export default function GuidePanel() {
       <main className="max-w-md mx-auto p-4 space-y-6">
         
         {/* SESSION INFO */}
-        <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg">
-          <div className="text-blue-100 text-xs font-bold uppercase tracking-wider mb-1">Active Session</div>
-          <div className="text-2xl font-bold">Finca Montezuma Tour</div>
-          <div className="mt-4 flex gap-3 text-sm">
-            <div className="bg-white/20 px-3 py-1 rounded-full">👥 12 Guests</div>
-            <div className="bg-white/20 px-3 py-1 rounded-full">⏱️ 00:00:00</div>
+        <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="text-blue-100 text-xs font-bold uppercase tracking-wider mb-1">Active Session</div>
+            <div className="text-2xl font-bold">Finca Montezuma Tour</div>
+            <div className="mt-4 flex gap-3 text-sm">
+              <div className="bg-white/20 px-3 py-1 rounded-full">👥 12 Guests</div>
+              <div className="bg-white/20 px-3 py-1 rounded-full">⏱️ 00:00:00</div>
+            </div>
           </div>
+          <div className="absolute top-0 right-0 p-4 opacity-20 text-6xl">🌍</div>
+        </div>
+
+        {/* GUEST ACCESS QR */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+          <h2 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-4">
+            Guest Access (Scan to Join)
+          </h2>
+          <div className="bg-gray-50 p-4 rounded-xl inline-block mb-3 border border-gray-100">
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent('https://tourflow-frontend-kkosdg4sda-uc.a.run.app/feed?session=demo-session')}`} 
+              alt="Guest QR Code"
+              className="w-40 h-40"
+            />
+          </div>
+          <p className="text-xs text-gray-400 font-medium leading-relaxed">
+            Point guests to this screen or share:<br/>
+            <span className="text-blue-500 font-bold select-all">tourflow.live/feed</span>
+          </p>
         </div>
 
         {/* BLUEPRINT LIST */}

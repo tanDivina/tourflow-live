@@ -57,7 +57,9 @@ function FeedContent() {
       context.drawImage(videoRef.current, 0, 0, width, height);
       
       canvasRef.current.toBlob((blob) => {
-        uploadMedia(blob, 'photo');
+        // Convert Blob to File to ensure it has a filename for the server
+        const file = new File([blob], `camera_${Date.now()}.jpg`, { type: "image/jpeg" });
+        uploadMedia(file, 'photo');
         stopCamera();
       }, 'image/jpeg', 0.8);
     }
