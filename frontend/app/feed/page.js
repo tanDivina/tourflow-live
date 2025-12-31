@@ -231,6 +231,11 @@ function FeedContent() {
           <div className="flex items-center gap-3">
              <Link href="/" className="text-gray-400 hover:text-gray-600">←</Link>
             <h1 className="text-xl font-bold flex items-center gap-2">🌍 TourFlow <span className="text-red-500 text-sm animate-pulse">● LIVE</span></h1>
+            {activeStopId !== 'live-stream' && (
+              <Link href="/guide" className="hidden sm:flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors">
+                🗺️ Blueprint
+              </Link>
+            )}
             <div className={`text-xs px-2 py-1 rounded-full ${connectionStatus === 'connected' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
               {connectionStatus === 'connected' ? 'Online' : 'Connecting...'}
             </div>
