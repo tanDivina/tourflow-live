@@ -243,7 +243,7 @@ const processWindow = async (sessionId) => {
     const feedPayload = {
       sessionId,
       caption: aiOutput.caption,
-      timestamp: aiOutput.timestamp || new Date().toISOString(),
+      timestamp: new Date().toISOString(), // Use current server time for accuracy
       credit: aiOutput.guest_credit,
       image: highlightImageBase64, 
     };

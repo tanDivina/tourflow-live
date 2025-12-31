@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import JSZip from 'jszip';
 
 function FeedContent() {
   const searchParams = useSearchParams();
@@ -18,6 +19,7 @@ function FeedContent() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null); // For Gallery Modal
   const [isCameraOpen, setIsCameraOpen] = useState(false); // For In-App Camera
+  const [isZipping, setIsZipping] = useState(false); // For Zip Download
   
   // Audio Refs
   const mediaRecorderRef = useRef(null);
@@ -66,6 +68,45 @@ function FeedContent() {
       videoRef.current.srcObject.getTracks().forEach(t => t.stop());
     }
     setIsCameraOpen(false);
+  };
+
+  // --- ZIP DOWNLOAD LOGIC ---
+  const downloadAllPhotos = async () => {
+    setIsZipping(true);
+    const zip = new JSZip();
+    const folder = zip.folder("tour-memories");
+    
+    // Filter only posts with images
+    const photos = feed.filter(p => p.image);
+    
+    if (photos.length === 0) {
+      alert("No photos to download!");
+      setIsZipping(false);
+      return;
+    }
+
+    photos.forEach((post, i) => {
+      // Clean base64 string if needed (usually it's raw data in this app)
+      const data = post.image.replace(/^data:image\/\w+;base64,/, "");
+      const filename = `photo_${i + 1}_${new Date(post.timestamp).getTime()}.jpg`;
+      folder.file(filename, data, { base64: true });
+    });
+
+    try {
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tourflow_memories_${sessionId}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Zip error:", err);
+      alert("Failed to create zip file");
+    } finally {
+      setIsZipping(false);
+    }
   };
 
   // --- FETCH HISTORY & SSE CONNECTION ---
@@ -198,6 +239,17 @@ function FeedContent() {
               <button onClick={() => setViewMode('feed')} className={`px-3 py-1 text-sm rounded-md ${viewMode === 'feed' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>Feed</button>
               <button onClick={() => setViewMode('gallery')} className={`px-3 py-1 text-sm rounded-md ${viewMode === 'gallery' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>Gallery</button>
             </div>
+            
+            {viewMode === 'gallery' && (
+              <button 
+                onClick={downloadAllPhotos} 
+                disabled={isZipping}
+                className="bg-green-100 text-green-700 px-3 py-1 text-sm rounded-md hover:bg-green-200 transition-colors flex items-center gap-1"
+              >
+                {isZipping ? '🎁 Zipping...' : '🎁 Download All'}
+              </button>
+            )}
+
             <input value={sessionId} onChange={(e) => setSessionId(e.target.value)} className="border rounded px-2 py-1 text-sm w-24 sm:w-auto" />
           </div>
         </div>
