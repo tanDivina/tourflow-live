@@ -24,7 +24,7 @@ function FeedContent() {
   // --- FETCH HISTORY & SSE CONNECTION ---
   useEffect(() => {
     let eventSource;
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tourflow-backend-0376136188.us-central1.run.app';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tourflow-backend-kkosdg4sda-uc.a.run.app';
 
     const fetchHistory = async () => {
       setIsLoadingHistory(true);
@@ -83,7 +83,7 @@ function FeedContent() {
     formData.append('media', file);
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tourflow-backend-0376136188.us-central1.run.app';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tourflow-backend-kkosdg4sda-uc.a.run.app';
       const res = await fetch(`${backendUrl}/upload`, { method: 'POST', body: formData });
       if (res.ok) {
         setUploadStatus(`${type} uploaded!`);
