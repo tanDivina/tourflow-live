@@ -77,6 +77,7 @@ function FeedContent() {
     setUploadStatus(`Uploading ${type}...`);
     const formData = new FormData();
     formData.append('sessionId', sessionId);
+    formData.append('stopId', 'live-stream'); // Default stopId for live feed
     formData.append('type', type);
     formData.append('source', source);
     formData.append('media', file);
