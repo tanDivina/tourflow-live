@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
-export default function Feed() {
-  const [sessionId, setSessionId] = useState('demo-session');
+function FeedContent() {
+  const searchParams = useSearchParams();
+  const initialSessionId = searchParams.get('session') || 'demo-session';
+
+  const [sessionId, setSessionId] = useState(initialSessionId);
   const [feed, setFeed] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
@@ -281,5 +285,13 @@ export default function Feed() {
 
       </main>
     </div>
+  );
+}
+
+export default function Feed() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading TourFlow...</div>}>
+      <FeedContent />
+    </Suspense>
   );
 }
