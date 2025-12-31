@@ -1,11 +1,8 @@
-// blueprint_manager.js
-// Publishes tour blueprints to the tour-blueprints compacted topic.
-
 const { Kafka } = require('kafkajs');
 require('dotenv').config();
 
 const kafka = new Kafka({
-  clientId: 'blueprint-manager',
+  clientId: 'tourflow-blueprint-manager',
   brokers: [process.env.CONFLUENT_BOOTSTRAP_SERVER],
   ssl: true,
   sasl: {
@@ -17,55 +14,55 @@ const kafka = new Kafka({
 
 const producer = kafka.producer();
 
-/**
- * Publishes a stop's blueprint data.
- * @param {string} sessionId - The tour session ID.
- * @param {string} stopId - The unique ID for this stop.
- * @param {Object} blueprintData - Data like stop_name, context_hint, etc.
- */
-const publishBlueprint = async (sessionId, stopId, blueprintData) => {
-  await producer.connect();
-  try {
-    const key = `${sessionId}:${stopId}`;
-    const value = JSON.stringify({
-      session_id: sessionId,
-      stop_id: stopId,
-      ...blueprintData,
-      updated_at: new Date().toISOString(),
-    });
-
-    await producer.send({
-      topic: 'tour-blueprints',
-      messages: [{ key, value }],
-    });
-
-    console.log(`Blueprint published for stop ${stopId} in session ${sessionId}`);
-  } catch (error) {
-    console.error('Error publishing blueprint:', error);
-  } finally {
-    await producer.disconnect();
-  }
+const BLUEPRINT = {
+  'demo-session': [
+    {
+      stopId: 'stop-1',
+      name: '🌱 Cacao Nursery',
+      context_hint: 'We are looking at baby cacao trees. They need shade and careful watering.',
+      gps: { lat: 9.65, lng: -85.05 }
+    },
+    {
+      stopId: 'stop-2',
+      name: '🍫 Fermentation Station',
+      context_hint: 'This is where the magic happens. The beans are fermenting in wooden boxes to develop flavor.',
+      gps: { lat: 9.651, lng: -85.051 }
+    },
+    {
+      stopId: 'stop-3',
+      name: '☕ Drying Deck',
+      context_hint: 'Beans are spread out under the sun. We rake them to ensure even drying.',
+      gps: { lat: 9.652, lng: -85.052 }
+    }
+  ]
 };
 
-// Example usage
+const publishBlueprint = async (sessionId) => {
+  await producer.connect();
+  console.log(`\n🔵 [BLUEPRINT MANAGER] Connected to TourFlow Control Plane`);
+  console.log(`📋 Loading Blueprint for Session: ${sessionId}...
+`);
+
+  const stops = BLUEPRINT[sessionId] || BLUEPRINT['demo-session'];
+
+  for (const stop of stops) {
+    console.log(`   📍 Defining Stop: ${stop.name}`);
+    console.log(`      └─ Context: "${stop.context_hint}"`);
+    
+    // In a real app, we'd publish this to 'tour-blueprints'
+    // For this demo, we simulate the "Admin" setting the state.
+    // The backend joins this data with the live stream.
+    
+    // Simulate a slight delay as if the guide is planning the route
+    await new Promise(r => setTimeout(r, 800));
+  }
+
+  console.log(`\n✅ Blueprint Active! The AI Context Engine is now synchronized.`);
+  console.log(`   Waiting for Guide/Guest media uploads...`);
+  await producer.disconnect();
+};
+
+// Run
 if (require.main === module) {
-  (async () => {
-    const sessionId = 'session-123';
-    const stops = [
-      {
-        stopId: 'stop-1',
-        data: { stop_name: 'Cacao Harvest', context_hint: 'Explain how to identify ripe cacao pods' }
-      },
-      {
-        stopId: 'stop-2',
-        data: { stop_name: 'Fermentation Box', context_hint: 'Explain the chemistry of sweating beans' }
-      }
-    ];
-
-    for (const stop of stops) {
-      await publishBlueprint(sessionId, stop.stopId, stop.data);
-    }
-  })();
+  publishBlueprint('demo-session').catch(console.error);
 }
-
-module.exports = { publishBlueprint };

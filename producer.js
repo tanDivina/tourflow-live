@@ -61,6 +61,38 @@ const publishTourMedia = async (sessionId, stopId, type, dataBuffer, metadata) =
   }
 };
 
+/**
+ * Publishes a Blueprint Update (e.g., activating a stop) to Kafka.
+ * @param {string} sessionId 
+ * @param {string} stopId 
+ * @param {Object} metadata 
+ */
+const publishBlueprintUpdate = async (sessionId, stopId, metadata = {}) => {
+  const topic = 'tour-blueprints';
+  try {
+    const payload = {
+      sessionId,
+      stopId,
+      action: 'activate',
+      timestamp: new Date().toISOString(),
+      ...metadata
+    };
+
+    await producer.send({
+      topic,
+      messages: [
+        {
+          key: sessionId, // Key by session to ensure ordering
+          value: JSON.stringify(payload),
+        },
+      ],
+    });
+    console.log(`[BLUEPRINT] Activated Stop ${stopId} for session ${sessionId}`);
+  } catch (error) {
+    console.error('Error publishing blueprint update:', error);
+  }
+};
+
 // Example usage if run directly
 if (require.main === module) {
   (async () => {
@@ -72,4 +104,4 @@ if (require.main === module) {
   })();
 }
 
-module.exports = { connectProducer, publishTourMedia };
+module.exports = { connectProducer, publishTourMedia, publishBlueprintUpdate };

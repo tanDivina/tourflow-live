@@ -6,7 +6,7 @@ const express = require('express');
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const { Kafka } = require('kafkajs');
-const { connectProducer, publishTourMedia } = require('./producer');
+const { connectProducer, publishTourMedia, publishBlueprintUpdate } = require('./producer');
 const { fetchSessionHistory } = require('./history_fetcher');
 const sharp = require('sharp');
 require('dotenv').config();
@@ -96,7 +96,24 @@ app.get('/api/gallery/:sessionId', async (req, res) => {
   }
 });
 
-// 3. Media Upload Endpoint (Producer)
+// 3. Blueprint Activation Endpoint
+// Allows the Guide to "Activate" a specific stop in the Blueprint.
+app.post('/api/blueprint/activate', async (req, res) => {
+  const { sessionId, stopId, stopName } = req.body;
+  if (!sessionId || !stopId) {
+    return res.status(400).json({ error: 'Missing sessionId or stopId' });
+  }
+
+  try {
+    await publishBlueprintUpdate(sessionId, stopId, { name: stopName });
+    res.status(200).json({ success: true, message: `Activated Stop ${stopId}` });
+  } catch (error) {
+    console.error('Blueprint activation error:', error);
+    res.status(500).json({ error: 'Failed to activate stop' });
+  }
+});
+
+// 4. Media Upload Endpoint (Producer)
 app.post('/upload', async (req, res) => {
   if (!req.files || !req.files.media) {
     return res.status(400).send('No media file uploaded.');
