@@ -183,11 +183,9 @@ ON stream.stopId = blueprint.stop_id;`}
               <pre className="p-4 text-xs md:text-sm text-pink-400 font-mono overflow-x-auto">
 {`// Multi-Modal Prompt Construction
 parts.push({
-  text: \
-`SECTION: ${stopName}
-         CONTEXT: ${contextHint}
-         Analyze the audio and photos...\
-`
+  text: \`SECTION: \${stopName}
+         CONTEXT: \${contextHint}
+         Analyze the audio and photos...\`
 });
 
 if (item.type === 'photo') {
