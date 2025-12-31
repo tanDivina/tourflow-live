@@ -7,6 +7,7 @@ const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const { Kafka } = require('kafkajs');
 const { connectProducer, publishTourMedia } = require('./producer');
+const { fetchSessionHistory } = require('./history_fetcher');
 const sharp = require('sharp');
 require('dotenv').config();
 
@@ -80,7 +81,22 @@ app.get('/events', (req, res) => {
   });
 });
 
-// 2. Media Upload Endpoint (Producer)
+// 2. Gallery / Replay Endpoint
+// Fetches past events from the beginning of the topic for a specific session.
+app.get('/api/gallery/:sessionId', async (req, res) => {
+  const { sessionId } = req.params;
+  console.log(`[API] Fetching gallery history for session: ${sessionId}`);
+  
+  try {
+    const history = await fetchSessionHistory(sessionId);
+    res.json(history);
+  } catch (error) {
+    console.error(`[API] Error fetching history for ${sessionId}:`, error);
+    res.status(500).json({ error: 'Failed to fetch gallery history' });
+  }
+});
+
+// 3. Media Upload Endpoint (Producer)
 app.post('/upload', async (req, res) => {
   if (!req.files || !req.files.media) {
     return res.status(400).send('No media file uploaded.');
